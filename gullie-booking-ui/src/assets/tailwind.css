@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .card { @apply rounded-2xl shadow-soft border border-zinc-200 bg-white; }
+  .btn { @apply px-4 py-2 rounded-xl border border-zinc-300 hover:bg-zinc-50 transition; }
+  .btn-primary { @apply px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 border border-blue-700; }
+  .input { @apply px-3 py-2 rounded-lg bg-white border border-zinc-300 outline-none focus:ring-2 focus:ring-blue-500; }
+  .pill { @apply text-xs px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200; }
+}
+
+html, body, #app {
+  height: 100%;
+}
+
+
