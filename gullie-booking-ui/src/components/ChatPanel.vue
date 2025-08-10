@@ -98,8 +98,9 @@ async function setKey() {
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
-    <div class="flex-1 overflow-y-auto space-y-2 p-3">
+  <div class="h-full min-h-0 flex flex-col relative">
+    <div class="pointer-events-none absolute inset-0 -z-10 opacity-20 bg-[url('/arch-illustration.png')] bg-center bg-contain md:bg-cover"></div>
+    <div class="flex-1 min-h-0 overflow-y-auto space-y-2 p-3">
       <!-- Messages rendered in App -->
       <slot />
     </div>
@@ -110,7 +111,7 @@ async function setKey() {
           <span v-if="!sending">Send</span>
           <span v-else>Sending…</span>
         </button>
-        <button class="btn" :class="{ 'bg-blue-50 border-blue-400': listening }" @click="toggleMic" :title="isSpeechSupported() ? 'Voice input' : 'Voice not supported'">
+        <button class="btn" :class="{ 'bg-orange-50 border-orange-400': listening }" @click="toggleMic" :title="isSpeechSupported() ? 'Voice input' : 'Voice not supported'">
           <span v-if="!listening">🎤</span>
           <span v-else>⏹</span>
         </button>

@@ -2,11 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Cera Pro font faces (ensure matching filenames exist under /public/Cera-Pro) */
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/Cera-Pro/CeraPro-Regular.woff2') format('woff2'),
+       url('/Cera-Pro/CeraPro-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/Cera-Pro/CeraPro-Italic.woff2') format('woff2'),
+       url('/Cera-Pro/CeraPro-Italic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/Cera-Pro/CeraPro-Medium.woff2') format('woff2'),
+       url('/Cera-Pro/CeraPro-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/Cera-Pro/CeraPro-Bold.woff2') format('woff2'),
+       url('/Cera-Pro/CeraPro-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/Cera-Pro/CeraPro-Black.woff2') format('woff2'),
+       url('/Cera-Pro/CeraPro-Black.woff') format('woff');
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  html {
+    font-family: 'Cera Pro', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
 @layer components {
   .card { @apply rounded-2xl shadow-soft border border-zinc-200 bg-white; }
   .btn { @apply px-4 py-2 rounded-xl border border-zinc-300 hover:bg-zinc-50 transition; }
-  .btn-primary { @apply px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 border border-blue-700; }
-  .input { @apply px-3 py-2 rounded-lg bg-white border border-zinc-300 outline-none focus:ring-2 focus:ring-blue-500; }
+  .btn-primary { @apply px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600 border border-orange-600; }
+  .input { @apply px-3 py-2 rounded-lg bg-white border border-zinc-300 outline-none focus:ring-2 focus:ring-orange-500; }
   .pill { @apply text-xs px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200; }
 }
 

@@ -129,7 +129,7 @@ export async function handleHotelSearch(payload: any) {
 
 // Enhance dispatcher to handle hotel search intents
 export function installExtendedIntents() {
-  const original = dispatchIntent
+  // placeholder for future runtime intent registration
 }
 
 

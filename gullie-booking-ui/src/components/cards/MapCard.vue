@@ -7,7 +7,6 @@ const props = defineProps<{ data: MapCardData }>()
 const mapEl = ref<HTMLDivElement | null>(null)
 let map: L.Map | null = null
 let markers: L.Marker[] = []
-let circle: L.Circle | null = null
 
 function renderMarkers(hotels: HotelOption[]) {
   markers.forEach((m) => m.remove())
@@ -28,7 +27,7 @@ onMounted(() => {
   const center = props.data.venue.location
   map = L.map(mapEl.value).setView([center.lat, center.lng], 15)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map)
-  circle = L.circle([center.lat, center.lng], { radius: props.data.radiusMeters, color: '#3b82f6', fillColor: '#93c5fd', fillOpacity: 0.2 }).addTo(map)
+  L.circle([center.lat, center.lng], { radius: props.data.radiusMeters, color: '#3b82f6', fillColor: '#93c5fd', fillOpacity: 0.2 }).addTo(map)
   renderMarkers(props.data.hotels)
 })
 

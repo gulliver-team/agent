@@ -12,11 +12,12 @@ const filtered = computed(() => {
   return props.data.hotels.filter((h) => h.price <= budget.value)
 })
 
-function updateExact(e: Event) {
-  const v = Number((e.target as HTMLInputElement).value || '0')
-  budget.value = v
-  exactBudget.value = v ? String(v) : ''
-}
+// kept for future direct input hook; not currently used
+// function updateExact(e: Event) {
+//   const v = Number((e.target as HTMLInputElement).value || '0')
+//   budget.value = v
+//   exactBudget.value = v ? String(v) : ''
+// }
 
 function setBudgetFromText() {
   const v = Number(exactBudget.value || '0')

@@ -9,21 +9,19 @@ const messages = computed(() => store.messages)
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100">
+  <div class="min-h-screen relative bg-gradient-to-b from-zinc-50 to-zinc-100">
     <header class="sticky top-0 z-10 backdrop-blur bg-white/70 border-b">
       <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-blue-600 text-white grid place-items-center font-bold">G</div>
-          <div class="font-semibold">Gullie Booking</div>
+        <div class="flex items-center gap-3">
+          <img src="/gullie-black-logo.png" alt="Gullie" class="h-8 w-auto" />
         </div>
-        <div class="text-xs text-zinc-500">Mock UI</div>
       </div>
     </header>
 
     <div class="max-w-6xl mx-auto p-4">
       <div class="grid grid-cols-1 gap-4">
-        <div class="card h-[80vh] flex flex-col overflow-hidden">
-          <div class="px-4 py-3 border-b flex items-center justify-between">
+        <div class="rounded-2xl border border-zinc-200 bg-white h-[80vh] min-h-0 flex flex-col">
+          <div class="px-4 py-3 border-b flex items-center justify-between bg-zinc-50">
             <div class="font-semibold">Agent Chat</div>
             <div class="text-xs text-zinc-500">Chat + Voice</div>
           </div>
@@ -42,8 +40,8 @@ const messages = computed(() => store.messages)
             </template>
             <template v-else>
               <div v-for="m in messages" :key="m.id" class="space-y-2">
-                <div class="flex items-start gap-2 p-2 rounded-lg" :class="m.role === 'agent' ? 'bg-blue-50/50' : ''">
-                  <div class="text-[10px] uppercase tracking-wide pill" :class="m.role === 'agent' ? 'bg-blue-100 border-blue-200 text-blue-700' : 'bg-zinc-100'">{{ m.role }}</div>
+                <div class="flex items-start gap-2 p-2 rounded-lg" :class="m.role === 'agent' ? 'bg-orange-50' : 'bg-zinc-50'">
+                  <div class="text-[10px] uppercase tracking-wide pill" :class="m.role === 'agent' ? 'bg-orange-100 border-orange-200 text-orange-700' : 'bg-zinc-100'">{{ m.role }}</div>
                   <div class="text-sm leading-5 text-zinc-800">{{ m.text }}</div>
                 </div>
                 <template v-for="s in store.steps.filter(s => s.afterMessageId === m.id)" :key="s.id">
