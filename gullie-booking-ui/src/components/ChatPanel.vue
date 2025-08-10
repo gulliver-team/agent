@@ -98,13 +98,12 @@ async function setKey() {
 </script>
 
 <template>
-  <div class="h-full min-h-0 flex flex-col relative">
-    <div class="pointer-events-none absolute inset-0 -z-10 opacity-20 bg-[url('/arch-illustration.png')] bg-center bg-contain md:bg-cover"></div>
+  <div class="h-full min-h-0 flex flex-col">
     <div class="flex-1 min-h-0 overflow-y-auto space-y-2 p-3">
       <!-- Messages rendered in App -->
       <slot />
     </div>
-    <div class="border-t p-3">
+    <div class="border-t p-3 relative z-10 bg-transparent">
       <div class="flex items-center gap-2">
         <input v-model="input" class="input flex-1" placeholder="Type a message to the agent..." @keyup.enter="send" />
         <button class="btn" :disabled="sending" @click="send">

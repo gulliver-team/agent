@@ -10,7 +10,8 @@ const messages = computed(() => store.messages)
 
 <template>
   <div class="min-h-screen relative bg-gradient-to-b from-zinc-50 to-zinc-100">
-    <header class="sticky top-0 z-10 backdrop-blur bg-white/70 border-b">
+    <div class="pointer-events-none absolute inset-0 z-0 opacity-20 bg-[url('/arch-illustration.png')] bg-center bg-cover"></div>
+    <header class="sticky top-0 z-20 backdrop-blur bg-white/70 border-b">
       <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <img src="/gullie-black-logo.png" alt="Gullie" class="h-8 w-auto" />
@@ -18,7 +19,7 @@ const messages = computed(() => store.messages)
       </div>
     </header>
 
-    <div class="max-w-6xl mx-auto p-4">
+    <div class="relative z-10 max-w-6xl mx-auto p-4">
       <div class="grid grid-cols-1 gap-4">
         <div class="rounded-2xl border border-zinc-200 bg-white h-[80vh] min-h-0 flex flex-col">
           <div class="px-4 py-3 border-b flex items-center justify-between bg-zinc-50">
