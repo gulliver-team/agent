@@ -1,4 +1,4 @@
-import { agentSay, upsertStep, createStepId } from '../store'
+import { gullieSay, upsertStep, createStepId } from '../store'
 import { store } from '../store'
 import type { HotelOption, TimelineStep, Venue } from '../types'
 import { haversineDistanceMeters, mockGeocode, walkTimeMinutes } from './geo'
@@ -88,7 +88,7 @@ export function chooseHotel(hotelId: string) {
   const hotel = (selection.data as any).hotels.find((h: HotelOption) => h.id === hotelId)
   if (!hotel) return
 
-  const agentMsg = agentSay('Great choice. Here is your booking summary:')
+  const agentMsg = gullieSay('Great choice. Here is your booking summary:')
   const summary: TimelineStep = {
     id: createStepId('BookingSummary'),
     kind: 'BookingSummary',
@@ -104,7 +104,7 @@ export function payNow(amount: number) {
   const summary = [...steps].reverse().find((s) => s.kind === 'BookingSummary')
   const hotel = summary ? ((summary.data as any).hotel as HotelOption) : { id: 'selected', name: 'Selected Hotel', price: amount, location: { lat: 0, lng: 0 }, address: '' }
   const ref = `REF-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
-  const agentMsg = agentSay(`Payment successful. Confirmation: ${ref}`)
+  const agentMsg = gullieSay(`Payment successful. Confirmation: ${ref}`)
   const confirmation: TimelineStep = {
     id: createStepId('Confirmation'),
     kind: 'Confirmation',

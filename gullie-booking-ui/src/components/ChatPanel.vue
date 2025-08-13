@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onBeforeUnmount } from 'vue'
+import { ref, onBeforeUnmount, onMounted } from 'vue'
 import { isSpeechSupported, startListening } from '../lib/voice'
-import { callOpenAIResponse, getOpenAIApiKey, setOpenAIApiKey } from '../lib/openai'
+import { callOpenAIResponse, getOpenAIApiKey, setOpenAIApiKey, AVAILABLE_MODELS, getSelectedModel, setSelectedModel } from '../lib/openai'
 import { SYSTEM_INSTRUCTIONS } from '../instructions/system'
-import { userSay, agentSay, upsertStep, createStepId } from '../store'
+import { userSay, gullieSay, updateRelocationPlan } from '../store'
 import { handleHotelSearch } from '../lib/intent'
 // import { handleBookingQuery } from '../api/mock'
 
@@ -12,6 +12,35 @@ const listening = ref(false)
 let stopFn: (() => void) | null = null
 const apiKeySet = ref(!!getOpenAIApiKey())
 const sending = ref(false)
+const selectedModel = ref(getSelectedModel())
+const showModelSelector = ref(false)
+
+function toTitleCase(text: string): string {
+  return text
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function extractRelocationCities(text: string): { from?: string; to?: string } {
+  // Prefer explicit "from X to Y"
+  const explicit = /\bfrom\s+([A-Za-z][A-Za-z\s]+?)\s+to\s+([A-Za-z][A-Za-z\s]+?)(?:[.,!?]|$)/i.exec(text)
+  if (explicit) {
+    return { from: toTitleCase(explicit[1]), to: toTitleCase(explicit[2]) }
+  }
+  // Fallback: "X to Y" at start, but avoid leading verbs/pronouns
+  const simple = /^\s*([A-Za-z][A-Za-z\s]{1,40})\s+to\s+([A-Za-z][A-Za-z\s]{1,40})\b/i.exec(text)
+  if (simple) {
+    const left = simple[1]
+    if (!/\b(i|i'm|im|we|we're|moving|move|from)\b/i.test(left)) {
+      return { from: toTitleCase(left), to: toTitleCase(simple[2]) }
+    }
+  }
+  return {}
+}
 
 function send() {
   const text = input.value.trim()
@@ -33,8 +62,7 @@ function send() {
           // 2) Auto-run hotel search if the query looks like a hotel request
           await handleHotelSearch({ query: toolPayload.query })
         } else {
-          const a = agentSay('')
-          upsertStep({ id: createStepId('HtmlCard'), kind: 'HtmlCard', status: 'in_progress', afterMessageId: a.id, ts: Date.now(), data: { html: `<section style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff"><p style="margin:0;font:13px system-ui">Unsupported tool.</p></section>` } } as any)
+          gullieSay('Unsupported tool.')
         }
       } else {
         // If the HTML includes a search button, run it directly; else render as is
@@ -49,12 +77,18 @@ function send() {
             .replace(/&amp;/g, '&')
           try { await handleHotelSearch(JSON.parse(payload)); sending.value = false; return } catch {}
         }
-        const a = agentSay('')
-        upsertStep({ id: createStepId('HtmlCard'), kind: 'HtmlCard', status: 'in_progress', afterMessageId: a.id, ts: Date.now(), data: { html: reply } } as any)
+        // Instead of creating a separate HtmlCard, embed HTML directly in the message
+        gullieSay(reply)
       }
+
+      // Extract only the cities and store in the plan (title-cased)
+      const { from, to } = extractRelocationCities(text)
+      if (from || to) updateRelocationPlan({ fromCity: from || '', toCity: to || '' })
+      const dateMatch = text.match(/(\d{4}-\d{2}-\d{2}|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d{1,2}\b|\d{1,2}\/\d{1,2})/i)
+      if (dateMatch) updateRelocationPlan({ date: dateMatch[1] })
     } catch (e) {
       // Fallback to mock flow if model call fails
-      agentSay(String(e))
+      gullieSay(String(e))
     }
     sending.value = false
   })()
@@ -79,6 +113,30 @@ function toggleMic() {
     }, 3000)
   }
 }
+
+function selectModel(modelId: string) {
+  selectedModel.value = modelId
+  setSelectedModel(modelId)
+  showModelSelector.value = false
+}
+
+function getCurrentModelName(): string {
+  const model = AVAILABLE_MODELS.find(m => m.id === selectedModel.value)
+  return model?.name || selectedModel.value
+}
+
+// Close model selector when clicking outside
+onMounted(() => {
+  const handleClickOutside = (e: Event) => {
+    if (showModelSelector.value && !(e.target as Element)?.closest('.relative')) {
+      showModelSelector.value = false
+    }
+  }
+  document.addEventListener('click', handleClickOutside)
+  onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside)
+  })
+})
 
 onBeforeUnmount(() => stopFn?.())
 
@@ -115,9 +173,34 @@ async function setKey() {
           <span v-else>⏹</span>
         </button>
         <button class="btn" @click="setKey" :title="apiKeySet ? 'Update API key' : 'Set OpenAI API key'">🔑</button>
+        <div class="relative">
+          <button class="btn" @click="showModelSelector = !showModelSelector" :title="`Current model: ${getCurrentModelName()}`">🤖</button>
+          
+          <!-- Model Selector Dropdown -->
+          <div v-if="showModelSelector" class="absolute bottom-full right-0 mb-2 bg-white border border-zinc-200 rounded-lg shadow-lg z-20 min-w-64">
+            <div class="p-3 border-b border-zinc-100">
+              <div class="font-semibold text-sm text-zinc-900">Select AI Model</div>
+              <div class="text-xs text-zinc-500 mt-1">Current: {{ getCurrentModelName() }}</div>
+            </div>
+            <div class="max-h-64 overflow-y-auto">
+              <div v-for="model in AVAILABLE_MODELS" :key="model.id" 
+                   class="p-3 hover:bg-zinc-50 cursor-pointer border-b border-zinc-50 last:border-b-0" 
+                   :class="{ 'bg-orange-50 border-orange-100': model.id === selectedModel }"
+                   @click="selectModel(model.id)">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-sm text-zinc-900">{{ model.name }}</div>
+                    <div class="text-xs text-zinc-500">{{ model.description }}</div>
+                  </div>
+                  <div v-if="model.id === selectedModel" class="text-orange-500 text-xs">✓</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="text-[11px] text-zinc-500 mt-1" v-if="isSpeechSupported()">Tip: Tap mic and speak; it will auto-send.</div>
-      <div class="text-[11px] text-zinc-500 mt-1" v-if="sending">Model thinking…</div>
+      <div class="text-[11px] text-zinc-500 mt-1" v-if="sending">Model thinking… ({{ getCurrentModelName() }})</div>
     </div>
   </div>
 </template>

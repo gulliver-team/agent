@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import type { HtmlCardData } from '../../types'
 import { dispatchIntent } from '../../lib/intent'
 const props = defineProps<{ data: HtmlCardData }>()
@@ -46,15 +46,54 @@ function onClick(e: Event) {
 
 onMounted(() => {
   root.value?.addEventListener('click', onClick)
+  applyTheme()
 })
 onBeforeUnmount(() => {
   root.value?.removeEventListener('click', onClick)
 })
+
+watch(() => props.data.html, () => applyTheme())
+
+function applyTheme() {
+  const el = root.value
+  if (!el) return
+  const orangeBg = '#f97316'
+  const orangeFill = '#fdba74'
+  
+  // Apply Cera Pro font to all text elements
+  const allElements = el.querySelectorAll('*')
+  allElements.forEach((element) => {
+    const e = element as HTMLElement
+    if (!e.style.fontFamily) {
+      e.style.fontFamily = "'Cera Pro', sans-serif"
+    }
+  })
+  
+  // Apply orange theme to buttons and interactive elements
+  const targets = el.querySelectorAll('button, [data-intent]')
+  targets.forEach((t) => {
+    const e = t as HTMLElement
+    e.style.background = orangeBg
+    e.style.borderColor = orangeBg
+    e.style.color = '#ffffff'
+    e.style.borderRadius = e.style.borderRadius || '8px'
+    e.style.fontFamily = "'Cera Pro', sans-serif"
+  })
+  
+  // Badges/chips
+  el.querySelectorAll('.chip, .badge').forEach((t) => {
+    const e = t as HTMLElement
+    e.style.background = orangeFill
+    e.style.borderColor = orangeBg
+    e.style.color = '#7c2d12'
+    e.style.fontFamily = "'Cera Pro', sans-serif"
+  })
+}
 </script>
 
 <template>
-  <div ref="root" class="card overflow-hidden" :style="{ minHeight: (props.data.height || 0) + 'px' }">
-    <div class="p-0" v-html="props.data.html"></div>
+  <div ref="root" class="overflow-hidden" :style="{ minHeight: (props.data.height || 0) + 'px' }">
+    <div v-html="props.data.html"></div>
   </div>
 </template>
 

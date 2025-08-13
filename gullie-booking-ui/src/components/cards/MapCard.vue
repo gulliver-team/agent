@@ -12,7 +12,7 @@ function renderMarkers(hotels: HotelOption[]) {
   markers.forEach((m) => m.remove())
   markers = []
   const venueIcon = L.divIcon({ html: '<div class="w-3 h-3 rounded-full bg-red-600 border-2 border-white"></div>', className: '' })
-  const hotelIcon = L.divIcon({ html: '<div class="w-3 h-3 rounded-full bg-blue-600 border-2 border-white"></div>', className: '' })
+  const hotelIcon = L.divIcon({ html: '<div class="w-3 h-3 rounded-full bg-orange-500 border-2 border-white"></div>', className: '' })
   const v = props.data.venue.location
   L.marker([v.lat, v.lng], { icon: venueIcon }).addTo(map!)
   hotels.forEach((h) => {
@@ -27,7 +27,7 @@ onMounted(() => {
   const center = props.data.venue.location
   map = L.map(mapEl.value).setView([center.lat, center.lng], 15)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map)
-  L.circle([center.lat, center.lng], { radius: props.data.radiusMeters, color: '#3b82f6', fillColor: '#93c5fd', fillOpacity: 0.2 }).addTo(map)
+  L.circle([center.lat, center.lng], { radius: props.data.radiusMeters, color: '#f97316', fillColor: '#fdba74', fillOpacity: 0.2 }).addTo(map)
   renderMarkers(props.data.hotels)
 })
 

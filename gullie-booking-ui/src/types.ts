@@ -1,9 +1,36 @@
 export interface Message {
   id: string
-  role: 'user' | 'agent'
+  role: 'user' | 'gullie'
   text: string
   ts: number
+  threadId?: string
 }
+
+export interface ChatThread {
+  id: string
+  title: string
+  service: ServiceType
+  lastMessage?: string
+  lastMessageTime?: number
+  unreadCount: number
+  avatar: string
+  color: string
+}
+
+export type ServiceType = 
+  | 'general'
+  | 'immigration'
+  | 'shipping'
+  | 'housing'
+  | 'finance'
+  | 'healthcare'
+  | 'transportation'
+  | 'lifestyle'
+  | 'education'
+  | 'pets'
+  | 'accommodation'
+  | 'insurance'
+  | 'utilities'
 
 export type StepKind =
   | 'GenericText'
@@ -77,6 +104,38 @@ export type TimelineStep =
 export interface StoreState {
   messages: Message[]
   steps: TimelineStep[]
+  relocationPlan?: RelocationPlan
+  threads: ChatThread[]
+  activeThreadId: string
+}
+
+export interface RelocationPlan {
+  fromCity: string
+  toCity: string
+  date?: string
+  moveDate?: string
+  packingDate?: string
+  furniturePickupDate?: string
+  hotelName?: string
+  hotelAddress?: string
+  hotelConfirmation?: string
+  travelBookingRef?: string
+  // Profile details
+  householdSize?: number
+  hasPets?: boolean
+  petDetails?: string
+  hasVisa?: boolean
+  visaStatus?: string
+  accommodationType?: string
+  accommodationBudget?: string
+  accommodationDuration?: string
+  immigrationStatus?: string
+  budget?: number
+  specialRequirements?: string[]
+  selectedDate?: string
+  userEmail?: string
+  userName?: string
+  moveType?: string
 }
 
 

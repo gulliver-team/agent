@@ -1,4 +1,14 @@
 const STORAGE_KEY = 'OPENAI_API_KEY'
+const MODEL_STORAGE_KEY = 'OPENAI_MODEL'
+const DEFAULT_MODEL = 'gpt-5-mini-2025-08-07'
+
+export const AVAILABLE_MODELS = [
+  { id: 'gpt-5-mini-2025-08-07', name: 'GPT-5 Mini', description: 'Fast and efficient' },
+  { id: 'gpt-4o', name: 'GPT-4o', description: 'Latest GPT-4 optimized' },
+  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Faster GPT-4o' },
+  { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', description: 'Enhanced GPT-4' },
+  { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', description: 'Fast and reliable' }
+]
 
 export function getOpenAIApiKey(): string | null {
   return localStorage.getItem(STORAGE_KEY)
@@ -6,6 +16,14 @@ export function getOpenAIApiKey(): string | null {
 
 export function setOpenAIApiKey(key: string) {
   localStorage.setItem(STORAGE_KEY, key)
+}
+
+export function getSelectedModel(): string {
+  return localStorage.getItem(MODEL_STORAGE_KEY) || DEFAULT_MODEL
+}
+
+export function setSelectedModel(model: string) {
+  localStorage.setItem(MODEL_STORAGE_KEY, model)
 }
 
 type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high'
@@ -24,7 +42,7 @@ export async function callOpenAIResponse(
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-5-mini-2025-08-07',
+      model: getSelectedModel(),
       input,
       ...(opts?.instructions ? { instructions: opts.instructions } : {}),
       ...(opts?.reasoningEffort ? { reasoning: { effort: opts.reasoningEffort } } : {}),
