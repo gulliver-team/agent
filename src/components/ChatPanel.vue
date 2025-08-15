@@ -3,8 +3,115 @@ import { ref, onBeforeUnmount, onMounted } from 'vue'
 import { isSpeechSupported, startListening } from '../lib/voice'
 import { callOpenAIResponse, getOpenAIApiKey, setOpenAIApiKey, AVAILABLE_MODELS, getSelectedModel, setSelectedModel } from '../lib/openai'
 import { SYSTEM_INSTRUCTIONS } from '../instructions/system'
-import { userSay, gullieSay, updateRelocationPlan } from '../store'
+import { userSay, gullieSay, updateRelocationPlan, store } from '../store'
 import { handleHotelSearch } from '../lib/intent'
+
+// Import service-specific instruction functions from intent.ts
+function getServiceSpecificInstructions(serviceType: string): string {
+  const baseInstructions = SYSTEM_INSTRUCTIONS
+  
+  const serviceSpecificContext: Record<string, string> = {
+    'shipping': `
+CURRENT SERVICE CONTEXT: You are operating in the SHIPPING & MOVING service thread ONLY.
+
+Your role: Expert shipping and moving specialist
+Your focus: ONLY shipping, moving, furniture, inventory, packing, containers, movers, quotes, logistics
+FORBIDDEN topics: Immigration, pets, visas, temporary housing, accommodation (unless moving-related storage)
+
+Allowed topics:
+- Household size assessment for shipping volume
+- Shipping type selection (everything, essentials, furniture only)
+- Moving quotes and mover recommendations  
+- Packing services and timelines
+- Container sizes and shipping methods
+- Moving logistics and coordination
+
+NEVER discuss: immigration, visas, pets, accommodation booking, hotels
+`,
+    'pets': `
+CURRENT SERVICE CONTEXT: You are operating in the PET RELOCATION service thread ONLY.
+
+Your role: Expert pet relocation specialist  
+Your focus: ONLY pets, animals, veterinary requirements, pet travel, pet documentation
+FORBIDDEN topics: Shipping furniture, moving household goods, immigration for humans, temporary housing
+
+Allowed topics:
+- Pet types and breeds
+- Pet size and weight requirements
+- Veterinary documentation for travel
+- Pet quarantine requirements
+- Pet carrier requirements and airline policies
+- Pet health certificates and vaccinations
+- Pet import/export permits
+
+NEVER discuss: furniture shipping, human immigration, accommodation booking, moving household goods
+`,
+    'immigration': `
+CURRENT SERVICE CONTEXT: You are operating in the IMMIGRATION & VISA service thread ONLY.
+
+Your role: Expert immigration and visa specialist
+Your focus: ONLY immigration, visas, work permits, documentation, legal status
+FORBIDDEN topics: Shipping furniture, pet relocation, temporary accommodation booking
+
+Allowed topics:
+- Visa types and requirements
+- Work permits and job status
+- Immigration documentation
+- Legal status and applications
+- Immigration lawyers and specialists
+- Visa timelines and processes
+
+NEVER discuss: pet relocation, furniture shipping, temporary accommodation booking
+`,
+    'housing': `
+CURRENT SERVICE CONTEXT: You are operating in the TEMPORARY HOUSING service thread ONLY.
+
+Your role: Expert temporary accommodation specialist
+Your focus: ONLY temporary housing, hotels, serviced apartments, short-term rentals
+FORBIDDEN topics: Shipping furniture, pet relocation, immigration visas
+
+Allowed topics:
+- Temporary accommodation types
+- Hotel and serviced apartment options
+- Short-term rental properties
+- Accommodation booking and rates
+- Neighborhood recommendations for temporary stays
+- Extended stay options
+
+NEVER discuss: pet relocation, furniture shipping, immigration visas
+`
+  }
+
+  // For general/unknown threads, allow hotel search functionality
+  if (serviceType === 'general' || !serviceSpecificContext[serviceType]) {
+    return baseInstructions + `
+CURRENT SERVICE CONTEXT: You are operating in the GENERAL planning thread.
+
+You can help with:
+- Initial relocation planning and overview
+- Hotel and accommodation search (you have access to web_search_preview tool)
+- General relocation guidance  
+- Directing users to specific service threads
+
+When users ask for hotel/accommodation search, use the web_search_preview tool to find real options.
+`
+  }
+  
+  return baseInstructions + serviceSpecificContext[serviceType]
+}
+
+function getServiceFromThread(threadId: string): string {
+  const thread = store.threads.find(t => t.id === threadId)
+  if (!thread) return 'general'
+  
+  // Extract service type from thread title/service
+  if (thread.service) return thread.service
+  if (thread.title.includes('Shipping')) return 'shipping'
+  if (thread.title.includes('Pet')) return 'pets'
+  if (thread.title.includes('Immigration')) return 'immigration'
+  if (thread.title.includes('Housing')) return 'housing'
+  return 'general'
+}
 // import { handleBookingQuery } from '../api/mock'
 
 const input = ref('')
@@ -52,7 +159,9 @@ function send() {
     sending.value = true
     try {
       // 1) First call may include tool requests (e.g., web_search_preview)
-      const reply = await callOpenAIResponse(text, { instructions: SYSTEM_INSTRUCTIONS, reasoningEffort: 'low', tools: [{ type: 'web_search_preview' }] })
+      const currentServiceType = getServiceFromThread(store.activeThreadId)
+      const serviceInstructions = getServiceSpecificInstructions(currentServiceType)
+      const reply = await callOpenAIResponse(text, { instructions: serviceInstructions, reasoningEffort: 'low', tools: [{ type: 'web_search_preview' }] })
 
       // Detect TOOL_REQUEST: {"tool":"web_search_preview", ...}
       const toolMatch = reply.match(/TOOL_REQUEST:\s*(\{[\s\S]*\})/)

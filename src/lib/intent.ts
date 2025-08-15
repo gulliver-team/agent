@@ -8,6 +8,113 @@ import { handleMovingQuotes, handleInventoryWorkflow, handleImmigrationWorkflow,
 import { sendImmigrationPartnerEmail, ensureUserEmail, ensureUserName } from './email'
 import { askShippingTypeQuestion } from './serviceWorkflows'
 
+// Generate service-specific system instructions to ensure thread isolation
+function getServiceSpecificInstructions(serviceType: string): string {
+  const baseInstructions = SYSTEM_INSTRUCTIONS
+  
+  const serviceSpecificContext: Record<string, string> = {
+    'shipping': `
+CURRENT SERVICE CONTEXT: You are operating in the SHIPPING & MOVING service thread ONLY.
+
+Your role: Expert shipping and moving specialist
+Your focus: ONLY shipping, moving, furniture, inventory, packing, containers, movers, quotes, logistics
+FORBIDDEN topics: Immigration, pets, visas, temporary housing, accommodation (unless moving-related storage)
+
+Allowed topics:
+- Household size assessment for shipping volume
+- Shipping type selection (everything, essentials, furniture only)
+- Moving quotes and mover recommendations  
+- Packing services and timelines
+- Container sizes and shipping methods
+- Moving logistics and coordination
+
+NEVER discuss: immigration, visas, pets, accommodation booking, hotels
+`,
+    'pets': `
+CURRENT SERVICE CONTEXT: You are operating in the PET RELOCATION service thread ONLY.
+
+Your role: Expert pet relocation specialist  
+Your focus: ONLY pets, animals, veterinary requirements, pet travel, pet documentation
+FORBIDDEN topics: Shipping furniture, moving household goods, immigration for humans, temporary housing
+
+Allowed topics:
+- Pet types and breeds
+- Pet size and weight requirements
+- Veterinary documentation for travel
+- Pet quarantine requirements
+- Pet carrier requirements and airline policies
+- Pet health certificates and vaccinations
+- Pet import/export permits
+
+NEVER discuss: furniture shipping, human immigration, accommodation booking, moving household goods
+`,
+    'immigration': `
+CURRENT SERVICE CONTEXT: You are operating in the IMMIGRATION & VISA service thread ONLY.
+
+Your role: Expert immigration and visa specialist
+Your focus: ONLY immigration, visas, work permits, documentation, legal status
+FORBIDDEN topics: Shipping furniture, pet relocation, temporary accommodation booking
+
+Allowed topics:
+- Visa types and requirements
+- Work permits and job status
+- Immigration documentation
+- Legal status and applications
+- Immigration lawyers and specialists
+- Visa timelines and processes
+
+NEVER discuss: pet relocation, furniture shipping, temporary accommodation booking
+`,
+    'housing': `
+CURRENT SERVICE CONTEXT: You are operating in the TEMPORARY HOUSING service thread ONLY.
+
+Your role: Expert temporary accommodation specialist
+Your focus: ONLY temporary housing, hotels, serviced apartments, short-term rentals
+FORBIDDEN topics: Shipping furniture, pet relocation, immigration visas
+
+Allowed topics:
+- Temporary accommodation types
+- Hotel and serviced apartment options
+- Short-term rental properties
+- Accommodation booking and rates
+- Neighborhood recommendations for temporary stays
+- Extended stay options
+
+NEVER discuss: pet relocation, furniture shipping, immigration visas
+`
+  }
+
+  // For general/unknown threads, allow hotel search functionality
+  if (serviceType === 'general' || !serviceSpecificContext[serviceType]) {
+    return baseInstructions + `
+CURRENT SERVICE CONTEXT: You are operating in the GENERAL planning thread.
+
+You can help with:
+- Initial relocation planning and overview
+- Hotel and accommodation search (you have access to web search tools)
+- General relocation guidance
+- Directing users to specific service threads
+
+When users ask for hotel/accommodation search, use the web_search_preview tool to find real options.
+`
+  }
+  
+  return baseInstructions + serviceSpecificContext[serviceType]
+}
+
+function getServiceFromThread(threadId: string): string {
+  const thread = store.threads.find(t => t.id === threadId)
+  if (!thread) return 'general'
+  
+  // Extract service type from thread title/service
+  if (thread.service) return thread.service
+  if (thread.title.includes('Shipping')) return 'shipping'
+  if (thread.title.includes('Pet')) return 'pets'
+  if (thread.title.includes('Immigration')) return 'immigration'
+  if (thread.title.includes('Housing')) return 'housing'
+  return 'general'
+}
+
 // Flag to prevent multiple simultaneous auto-responses (currently unused but reserved for future use)
 // let isAutoResponding = false
 
@@ -771,8 +878,9 @@ Use data-intent attributes on buttons:
 
 Style with inline CSS using Cera Pro font family, rounded corners, appropriate colors. Be specific to ${toCity} neighborhoods and areas, not generic locations.`
 
+          const serviceType = getServiceFromThread(targetThreadId)
           const dynamicContent = await callOpenAIResponse(contextMessage, {
-            instructions: SYSTEM_INSTRUCTIONS,
+            instructions: getServiceSpecificInstructions(serviceType),
             reasoningEffort: 'low'
           })
           
@@ -879,9 +987,10 @@ Style with inline CSS using Cera Pro font family, rounded corners, appropriate c
         // Auto-continue with next steps after data capture
         setTimeout(async () => {
           try {
-            const contextMessage = `User just provided: ${intent} with ${JSON.stringify(data)}. Continue guiding them through their relocation workflow with the next logical step. Be specific and actionable.`
+            const serviceType = getServiceFromThread(targetThreadId)
+            const contextMessage = `User just provided: ${intent} with ${JSON.stringify(data)}. Continue guiding them through their ${serviceType} workflow with the next logical step. Be specific and actionable. Stay focused ONLY on ${serviceType}-related topics.`
             const reply = await callOpenAIResponse(contextMessage, { 
-              instructions: SYSTEM_INSTRUCTIONS, 
+              instructions: getServiceSpecificInstructions(serviceType), 
               reasoningEffort: 'low'
             })
             gullieSay(reply, targetThreadId)
@@ -895,9 +1004,10 @@ Style with inline CSS using Cera Pro font family, rounded corners, appropriate c
         // Auto-continue conversation
         setTimeout(async () => {
           try {
-            const contextMessage = `User selected: ${intent} with data: ${JSON.stringify(data)}. Continue the conversation by providing the next logical step in their relocation workflow. Be specific and actionable.`
+            const serviceType = getServiceFromThread(targetThreadId)
+            const contextMessage = `User selected: ${intent} with data: ${JSON.stringify(data)}. Continue the conversation by providing the next logical step in their ${serviceType} workflow. Be specific and actionable. Stay focused ONLY on ${serviceType}-related topics.`
             const reply = await callOpenAIResponse(contextMessage, { 
-              instructions: SYSTEM_INSTRUCTIONS, 
+              instructions: getServiceSpecificInstructions(serviceType), 
               reasoningEffort: 'low'
             })
             gullieSay(reply, targetThreadId)
@@ -940,16 +1050,13 @@ export async function handleHotelSearch(payload: any) {
 
   // Use cache if available to reduce latency
   if (SEARCH_CACHE.has(query)) {
-    const a = gullieSay('')
     const cached = SEARCH_CACHE.get(query)!
-    upsertStep({ id: createStepId('HtmlCard'), kind: 'HtmlCard', status: 'in_progress', afterMessageId: a.id, ts: Date.now(), data: { html: cached } } as any)
+    gullieSay(cached)
     return
   }
 
-  // Show a small loading card
-  const loadingAgent = gullieSay('')
-  const loadingStepId = createStepId('HtmlCard')
-  upsertStep({ id: loadingStepId, kind: 'HtmlCard', status: 'in_progress', afterMessageId: loadingAgent.id, ts: Date.now(), data: { html: '<section style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff"><p style="margin:0;font:13px system-ui;color:#52525b">Searching hotels…</p></section>' } } as any)
+  // Show loading message
+  gullieSay('<section style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff"><p style="margin:0;font:13px system-ui;color:#52525b">🔍 Searching hotels...</p></section>')
 
   try {
     const searchResults = await callOpenAIResponse(query, { tools: [{ type: 'web_search_preview' }], instructions: 'Return concise bullet context of hotel candidates with names, addresses, prices if available, and distances if present. Include absolute https source links.' })
@@ -958,9 +1065,9 @@ export async function handleHotelSearch(payload: any) {
       { instructions: SYSTEM_INSTRUCTIONS }
     )
     SEARCH_CACHE.set(query, html)
-    upsertStep({ id: loadingStepId, kind: 'HtmlCard', status: 'in_progress', afterMessageId: loadingAgent.id, ts: Date.now(), data: { html } } as any)
+    gullieSay(html)
   } catch (e) {
-    upsertStep({ id: loadingStepId, kind: 'HtmlCard', status: 'in_progress', afterMessageId: loadingAgent.id, ts: Date.now(), data: { html: `<section style=\"padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff\"><p style=\"margin:0;font:13px system-ui;color:#dc2626\">Search failed: ${String(e)}</p></section>` } } as any)
+    gullieSay(`<section style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff"><p style="margin:0;font:13px system-ui;color:#dc2626">❌ Search failed: ${String(e)}</p></section>`)
   }
 }
 
