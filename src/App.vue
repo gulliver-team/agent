@@ -103,6 +103,28 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen relative bg-gradient-to-b from-zinc-50 to-zinc-100">
+    <!-- Platform Navigation Banner -->
+    <div class="relative z-20 bg-orange-500 text-white py-2">
+      <div class="max-w-6xl mx-auto px-4 flex justify-center items-center gap-6 text-sm">
+        <span class="font-medium">Explore Gullie Platforms:</span>
+        <a 
+          href="https://agent.gullie.io" 
+          class="hover:bg-orange-600 px-3 py-1 rounded transition-colors font-medium"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          🤖 Agent
+        </a>
+        <a 
+          href="https://voice.gullie.io" 
+          class="hover:bg-orange-600 px-3 py-1 rounded transition-colors font-medium"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          🎤 Voice
+        </a>
+      </div>
+    </div>
     <div class="pointer-events-none absolute inset-0 z-0 opacity-10 bg-[url('/arch-illustration.png')] bg-center bg-cover"></div>
     <div class="relative z-10 max-w-6xl mx-auto p-4">
       <!-- Centered Gullie Logo -->
