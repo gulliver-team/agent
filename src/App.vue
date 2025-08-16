@@ -7,6 +7,7 @@ import ChatPanel from './components/ChatPanel.vue'
 import ThreadsList from './components/ThreadsList.vue'
 import { dispatchIntent } from './lib/intent'
 import { getOrCreateServiceThread } from './store'
+import ThemeToggle from './components/ThemeToggle.vue'
 
 const messages = computed(() => store.messages.filter(m => 
   m.threadId === store.activeThreadId || (!m.threadId && store.activeThreadId === 'general')
@@ -102,7 +103,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen relative bg-gradient-to-b from-zinc-50 to-zinc-100">
+  <div class="min-h-screen relative bg-gradient-to-b from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800 dark:text-zinc-100">
     <!-- Platform Navigation Banner -->
     <div class="relative z-20 bg-orange-500 text-white py-2">
       <div class="max-w-6xl mx-auto px-4 flex justify-center items-center gap-6 text-sm">
@@ -127,26 +128,29 @@ onMounted(() => {
     </div>
     <div class="pointer-events-none absolute inset-0 z-0 opacity-10 bg-[url('/arch-illustration.png')] bg-center bg-cover"></div>
     <div class="relative z-10 max-w-6xl mx-auto p-4">
+      <div class="flex justify-end mb-4">
+        <ThemeToggle />
+      </div>
       <!-- Centered Gullie Logo -->
       <div class="flex justify-center mb-8">
         <img src="/gullie-black-logo.png" alt="Gullie" class="h-16 w-auto" />
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <!-- Threads Panel -->
-        <div class="lg:col-span-1 rounded-2xl border border-zinc-200 bg-white h-[80vh] min-h-0 flex flex-col overflow-hidden">
+        <div class="lg:col-span-1 rounded-2xl border border-zinc-200 bg-white h-[80vh] min-h-0 flex flex-col overflow-hidden dark:border-zinc-700 dark:bg-zinc-800">
           <ThreadsList @create-thread="showCreateThreadDialog" />
         </div>
         
         <!-- Chat Panel -->
-        <div class="lg:col-span-2 rounded-2xl border border-zinc-200 bg-white h-[80vh] min-h-0 flex flex-col overflow-hidden">
-          <div class="px-4 py-3 border-b flex items-center justify-between bg-white">
+        <div class="lg:col-span-2 rounded-2xl border border-zinc-200 bg-white h-[80vh] min-h-0 flex flex-col overflow-hidden dark:border-zinc-700 dark:bg-zinc-800">
+          <div class="px-4 py-3 border-b flex items-center justify-between bg-white dark:bg-zinc-800 dark:border-zinc-700">
             <div class="flex items-center gap-3">
               <div v-if="activeThread" class="text-lg">{{ activeThread.avatar }}</div>
               <div>
                 <div class="font-semibold" style="font-family: 'Cera Pro', sans-serif">
                   {{ activeThread?.title || 'Gullie Chat' }}
                 </div>
-                <div class="text-xs text-zinc-500" style="font-family: 'Cera Pro', sans-serif">
+                <div class="text-xs text-zinc-500 dark:text-zinc-400" style="font-family: 'Cera Pro', sans-serif">
                   Chat with your relocation assistant
                 </div>
               </div>
@@ -155,32 +159,32 @@ onMounted(() => {
           <ChatPanel>
             <template v-if="messages.length === 0">
               <div class="p-6">
-                <h2 class="text-2xl md:text-3xl font-bold text-zinc-900">Where are you moving to?</h2>
+                <h2 class="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">Where are you moving to?</h2>
                 <ol class="mt-6 space-y-4">
                   <li class="flex items-start gap-3">
                     <span class="h-8 w-8 rounded-full bg-orange-500 text-white grid place-items-center font-semibold">1</span>
-                    <div class="text-zinc-800">Tell us where you are moving <span class="font-semibold">from</span> and <span class="font-semibold">to</span> (e.g., “I am moving from New York to London”).</div>
+                    <div class="text-zinc-800 dark:text-zinc-100">Tell us where you are moving <span class="font-semibold">from</span> and <span class="font-semibold">to</span> (e.g., “I am moving from New York to London”).</div>
                   </li>
                   <li class="flex items-start gap-3">
                     <span class="h-8 w-8 rounded-full bg-orange-500 text-white grid place-items-center font-semibold">2</span>
-                    <div class="text-zinc-800">Ask for specific tasks and the Gullie agent will guide you and connect you to the right vendors.</div>
+                    <div class="text-zinc-800 dark:text-zinc-100">Ask for specific tasks and the Gullie agent will guide you and connect you to the right vendors.</div>
                   </li>
                 </ol>
               </div>
             </template>
             <template v-else>
               <div v-for="m in messages" :key="m.id" class="space-y-2">
-                <div class="flex items-start gap-2 p-2 rounded-lg" :class="m.role === 'gullie' ? 'bg-orange-50' : 'bg-zinc-50'">
-                  <div class="text-[10px] uppercase tracking-wide pill" :class="m.role === 'gullie' ? 'bg-orange-100 border-orange-200 text-orange-700' : 'bg-zinc-100'">{{ m.role }}</div>
-                  <div 
-                    class="text-sm leading-5 text-zinc-800" 
+                <div class="flex items-start gap-2 p-2 rounded-lg" :class="m.role === 'gullie' ? 'bg-orange-50 dark:bg-orange-900/50' : 'bg-zinc-50 dark:bg-zinc-700'">
+                  <div class="text-[10px] uppercase tracking-wide pill" :class="m.role === 'gullie' ? 'bg-orange-100 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300' : 'bg-zinc-100 dark:bg-zinc-700 dark:border-zinc-600'">{{ m.role }}</div>
+                  <div
+                    class="text-sm leading-5 text-zinc-800 dark:text-zinc-100"
                     :class="m.role === 'gullie' ? 'gullie-message' : ''"
-                    v-if="m.role === 'gullie' && m.text.includes('<')" 
+                    v-if="m.role === 'gullie' && m.text.includes('<')"
                     v-html="m.text"
                     @click="handleMessageClick"
                   ></div>
-                  <div 
-                    class="text-sm leading-5 text-zinc-800" 
+                  <div
+                    class="text-sm leading-5 text-zinc-800 dark:text-zinc-100"
                     v-else
                   >{{ m.text }}</div>
                 </div>
@@ -191,11 +195,11 @@ onMounted(() => {
             </template>
           </ChatPanel>
         </div>
-        <div class="lg:col-span-1 rounded-2xl border border-zinc-200 bg-white h-[80vh] min-h-0 flex flex-col overflow-hidden">
-          <div class="px-4 py-3 border-b flex items-center justify-between bg-zinc-50">
+        <div class="lg:col-span-1 rounded-2xl border border-zinc-200 bg-white h-[80vh] min-h-0 flex flex-col overflow-hidden dark:border-zinc-700 dark:bg-zinc-800">
+          <div class="px-4 py-3 border-b flex items-center justify-between bg-zinc-50 dark:bg-zinc-700 dark:border-zinc-700">
             <div class="font-semibold">Timeline</div>
           </div>
-          <div class="flex-1 min-h-0 overflow-y-auto p-4 bg-white">
+          <div class="flex-1 min-h-0 overflow-y-auto p-4 bg-white dark:bg-zinc-800">
             <Timeline />
           </div>
         </div>
