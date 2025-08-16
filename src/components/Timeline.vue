@@ -73,18 +73,18 @@ const items = computed(() => {
 
 <template>
   <div v-if="!plan">No plan yet. Start chatting to create one.</div>
-  <ol v-else class="relative border-l border-zinc-200 pl-4 space-y-6">
-    <li v-for="(it, idx) in items" :key="idx" class="ml-2">
-      <div class="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-orange-500"></div>
-      <div class="text-sm font-medium text-zinc-900">{{ it.title }}</div>
-      <div v-if="it.subtitle" class="text-xs text-zinc-500">{{ it.subtitle }}</div>
-      <div v-if="it.details && it.details.length > 0" class="mt-1 space-y-1">
-        <div v-for="detail in it.details" :key="detail" class="text-xs text-zinc-600 bg-zinc-50 px-2 py-1 rounded">
-          {{ detail }}
+    <ol v-else class="relative border-l border-zinc-200 pl-4 space-y-6 dark:border-zinc-700">
+      <li v-for="(it, idx) in items" :key="idx" class="ml-2">
+        <div class="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-orange-500"></div>
+        <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ it.title }}</div>
+        <div v-if="it.subtitle" class="text-xs text-zinc-500 dark:text-zinc-400">{{ it.subtitle }}</div>
+        <div v-if="it.details && it.details.length > 0" class="mt-1 space-y-1">
+          <div v-for="detail in it.details" :key="detail" class="text-xs text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-700 px-2 py-1 rounded">
+            {{ detail }}
+          </div>
         </div>
-      </div>
-    </li>
-  </ol>
+      </li>
+    </ol>
 </template>
 
 

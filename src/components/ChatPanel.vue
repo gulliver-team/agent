@@ -265,53 +265,53 @@ async function setKey() {
 </script>
 
 <template>
-  <div class="h-full min-h-0 flex flex-col">
-    <div class="flex-1 min-h-0 overflow-y-auto space-y-2 p-3">
-      <!-- Messages rendered in App -->
-      <slot />
-    </div>
-    <div class="border-t p-3 relative z-10 bg-transparent">
-      <div class="flex items-center gap-2">
-        <input v-model="input" class="input flex-1" placeholder="Type a message to the agent..." @keyup.enter="send" />
-        <button class="btn" :disabled="sending" @click="send">
-          <span v-if="!sending">Send</span>
-          <span v-else>Sending…</span>
+    <div class="h-full min-h-0 flex flex-col">
+      <div class="flex-1 min-h-0 overflow-y-auto space-y-2 p-3">
+        <!-- Messages rendered in App -->
+        <slot />
+      </div>
+      <div class="border-t p-3 relative z-10 bg-transparent dark:border-zinc-700">
+        <div class="flex items-center gap-2">
+          <input v-model="input" class="input flex-1" placeholder="Type a message to the agent..." @keyup.enter="send" />
+          <button class="btn" :disabled="sending" @click="send">
+            <span v-if="!sending">Send</span>
+            <span v-else>Sending…</span>
         </button>
         <button class="btn" :class="{ 'bg-orange-50 border-orange-400': listening }" @click="toggleMic" :title="isSpeechSupported() ? 'Voice input' : 'Voice not supported'">
           <span v-if="!listening">🎤</span>
           <span v-else>⏹</span>
         </button>
         <button class="btn" @click="setKey" :title="apiKeySet ? 'Update API key' : 'Set OpenAI API key'">🔑</button>
-        <div class="relative">
-          <button class="btn" @click="showModelSelector = !showModelSelector" :title="`Current model: ${getCurrentModelName()}`">🤖</button>
-          
-          <!-- Model Selector Dropdown -->
-          <div v-if="showModelSelector" class="absolute bottom-full right-0 mb-2 bg-white border border-zinc-200 rounded-lg shadow-lg z-20 min-w-64">
-            <div class="p-3 border-b border-zinc-100">
-              <div class="font-semibold text-sm text-zinc-900">Select AI Model</div>
-              <div class="text-xs text-zinc-500 mt-1">Current: {{ getCurrentModelName() }}</div>
-            </div>
-            <div class="max-h-64 overflow-y-auto">
-              <div v-for="model in AVAILABLE_MODELS" :key="model.id" 
-                   class="p-3 hover:bg-zinc-50 cursor-pointer border-b border-zinc-50 last:border-b-0" 
-                   :class="{ 'bg-orange-50 border-orange-100': model.id === selectedModel }"
-                   @click="selectModel(model.id)">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="font-medium text-sm text-zinc-900">{{ model.name }}</div>
-                    <div class="text-xs text-zinc-500">{{ model.description }}</div>
+          <div class="relative">
+            <button class="btn" @click="showModelSelector = !showModelSelector" :title="`Current model: ${getCurrentModelName()}`">🤖</button>
+
+            <!-- Model Selector Dropdown -->
+            <div v-if="showModelSelector" class="absolute bottom-full right-0 mb-2 bg-white border border-zinc-200 rounded-lg shadow-lg z-20 min-w-64 dark:bg-zinc-800 dark:border-zinc-700">
+              <div class="p-3 border-b border-zinc-100 dark:border-zinc-700">
+                <div class="font-semibold text-sm text-zinc-900 dark:text-zinc-100">Select AI Model</div>
+                <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Current: {{ getCurrentModelName() }}</div>
+              </div>
+              <div class="max-h-64 overflow-y-auto">
+                <div v-for="model in AVAILABLE_MODELS" :key="model.id"
+                     class="p-3 hover:bg-zinc-50 cursor-pointer border-b border-zinc-50 last:border-b-0 dark:hover:bg-zinc-700 dark:border-zinc-700"
+                     :class="{ 'bg-orange-50 dark:bg-orange-900/30 border-orange-100 dark:border-orange-700': model.id === selectedModel }"
+                     @click="selectModel(model.id)">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="font-medium text-sm text-zinc-900 dark:text-zinc-100">{{ model.name }}</div>
+                      <div class="text-xs text-zinc-500 dark:text-zinc-400">{{ model.description }}</div>
+                    </div>
+                    <div v-if="model.id === selectedModel" class="text-orange-500 text-xs">✓</div>
                   </div>
-                  <div v-if="model.id === selectedModel" class="text-orange-500 text-xs">✓</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <div class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1" v-if="isSpeechSupported()">Tip: Tap mic and speak; it will auto-send.</div>
+        <div class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1" v-if="sending">Model thinking… ({{ getCurrentModelName() }})</div>
       </div>
-      <div class="text-[11px] text-zinc-500 mt-1" v-if="isSpeechSupported()">Tip: Tap mic and speak; it will auto-send.</div>
-      <div class="text-[11px] text-zinc-500 mt-1" v-if="sending">Model thinking… ({{ getCurrentModelName() }})</div>
     </div>
-  </div>
-</template>
+  </template>
 
 

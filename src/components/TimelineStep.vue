@@ -11,10 +11,10 @@ defineProps<{ step: TStep }>()
 </script>
 
 <template>
-  <div class="card p-4">
-    <div v-if="step.kind === 'GenericText'">
-      <p class="text-sm text-zinc-700">{{ (step as any).data.text }}</p>
-    </div>
+    <div class="card p-4">
+      <div v-if="step.kind === 'GenericText'">
+        <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ (step as any).data.text }}</p>
+      </div>
     <MapCard v-else-if="step.kind === 'MapCard'" :data="(step as any).data" />
     <HotelSelectionCard v-else-if="step.kind === 'HotelSelection'" :data="(step as any).data" />
     <BookingSummaryCard v-else-if="step.kind === 'BookingSummary'" :data="(step as any).data" />
