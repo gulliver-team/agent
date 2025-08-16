@@ -4,10 +4,15 @@ import type { HotelOption, TimelineStep, Venue } from '../types'
 import { haversineDistanceMeters, mockGeocode, walkTimeMinutes } from './geo'
 
 function parseBudget(text: string): number | undefined {
-  const mDollar = text.match(/\$\s*(\d{2,4})/)
-  if (mDollar) return Number(mDollar[1])
-  const mBudget = text.match(/budget\s*(?:is|=|:)?\s*(\d{2,4})/i)
-  if (mBudget) return Number(mBudget[1])
+  // Match amounts like "$1,200", "budget is 2500" or "$150.50"
+  const pattern = '\\d+(?:,\\d{3})*(?:\\.\\d+)?'
+
+  const mDollar = text.match(new RegExp(`\\$\\s*(${pattern})`))
+  if (mDollar) return Number(mDollar[1].replace(/,/g, ''))
+
+  const mBudget = text.match(new RegExp(`budget\\s*(?:is|=|:)?\\s*(${pattern})`, 'i'))
+  if (mBudget) return Number(mBudget[1].replace(/,/g, ''))
+
   return undefined
 }
 
