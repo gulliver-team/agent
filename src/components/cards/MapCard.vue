@@ -37,10 +37,10 @@ watch(() => props.data.hotels, (h) => {
 </script>
 
 <template>
-  <div>
-    <div class="h-[280px] w-full rounded-2xl overflow-hidden" ref="mapEl"></div>
-    <div class="mt-2 text-xs text-zinc-600">Red pin: venue. Blue pins: hotels. Circle: ~5-minute walk.</div>
-  </div>
+    <div>
+      <div class="h-[280px] w-full rounded-2xl overflow-hidden" ref="mapEl"></div>
+      <div class="mt-2 text-xs text-zinc-600 dark:text-zinc-400">Red pin: venue. Blue pins: hotels. Circle: ~5-minute walk.</div>
+    </div>
 </template>
 
 
